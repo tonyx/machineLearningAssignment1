@@ -1,1 +1,143 @@
-My GitHub Page
+Description of the project:
+I made many experiments before being able to solve the proble, and such experiments were meant to learn by solving the problem itself.
+To solve the problem itself, I just focused on getting the right columns not on the base of what I have on the training set, but what is available on the test set.
+
+I'll go back to this problem later on, but at the moment, just let me describe simple experients (spike) that I just created to be sure I learned better the tools:
+
+for example, I created artificial data based on a linear model and some gaussian noise, and then I made training on this artifical data, expecting that the error on
+the data themselves should have the same distribution of the gaussian noise.
+
+
+Basic R procedures to do this are the following:
+
+housePrice <- function(numRooms=2,isCity=TRUE,isCountry=FALSE,isSea=FALSE) {
+	varianceOfGaussianNoise <- 5
+	return(numRooms*100+(isCity*0.9+isSea*1.1+isCountry*1)*100 +rnorm(1,0,varianceOfGaussianNoise))
+}
+
+createDataFrameOfPrices <- function(numbRows) {
+	
+	#creating dataframe 
+	col1 <- c()
+	col2 <- c()
+	col3 <- c()
+	col4 <- c()
+	col5 <- c()
+	myDataFrame <- data.frame(col1,col2,col3,col4,col5)
+
+	for (i in 1:numbRows) {
+		numberOfRooms <- randomNumberOfRooms()
+		cityCountryOrSea <- randomBooleanThreePositions()
+		price <- housePrice(numberOfRooms,cityCountryOrSea[[1]],cityCountryOrSea[[2]],cityCountryOrSea[[3]])
+		newRow <- append(c(price,numberOfRooms),cityCountryOrSea)
+		myDataFrame <- rbind(myDataFrame,newRow)
+	}
+
+	colnames(myDataFrame) <- c("price","numberRooms","city","country","sea")
+
+	return(myDataFrame)
+}
+
+randomNumberOfRooms <- function() {
+	sample(2:4,size=1)
+}
+
+randomBooleanThreePositions <- function() {
+	sample(c(TRUE,FALSE,FALSE),size=3)
+}
+
+
+
+In this way I can create a 1000 rows dataFrame by calling housePrice.
+dataFrame <- createDataFrameOfPrices(1000)
+
+To get the model I can write:
+model <- lm(price ~ ., data=dataFrame)
+
+then I can get the errors between the prediction and the actuals on the training set (in this artificial case there is really no need to separate trainig and test because I
+just expect that the noise just cannot fit in a linear model and so there is no big reason to expect that the noise will lead to overfit the training set)
+
+So I can obtain the values of prices predicted on the training data as follow:
+
+predictions <- predict(model,data=dataFrame)
+
+get a vecor of differences between the predictions and the real prices:
+
+error <- predictions - prices$price
+
+and if I plot the error (on y) respect to the sample (on x)
+as follow:
+plot(error)
+
+I get something that is equivalent to plotting the error I added to the model
+I can generate directly such error using the command
+
+gaussNoise <- rnorm(1000,0,5)
+
+and plot it by plot(gaussNoise) it looks statistically indistinguishable from the plot of the error.
+
+If I go to the code that generate the prices, and adjust the standard deviation of the gaussian noise from 5 to 10, and then compare
+the error of the learned model to a gaussian noise generated again with a standard deviation of 10, again we see the same picture.
+
+Even if the noise is 0, then we see that the error is between -1 and 1 in the recall (probably due only to some rounds in calculation).
+
+---
+
+
+Given that, the difference between this artificial learning experiments are:
+I don't know what variables I have to use, and even I don't know their meaning.
+Many data are missing (NA)
+Many data are possibly useless
+Many data can be used in the trainig set but may be missing in the test set.
+
+Any data that is present on the trainig data, but missing on the test set, will become noise for a model meant to be applied on the test set.
+Therefore it looks a simple thing going to see what the test set, and it is possible to deduce columns of numeric data that are completes.
+They look promising and they are of course present also in the training data.
+
+So, just as a recap, I use the columns names that I can see on the tests set which contains actual data.
+
+Such columns are:
+
+num_window,roll_belt,pitch_belt,yaw_belt,total_accel_belt,gyros_belt_x,gyros_belt_y,gyros_belt_z,accel_belt_x,accel_belt_y,accel_belt_z,magnet_belt_x,magnet_belt_y,magnet_belt_z,roll_arm,pitch_arm,yaw_arm,total_accel_arm,gyros_arm_x,gyros_arm_y,gyros_arm_z,accel_arm_x,accel_arm_y,accel_arm_z,magnet_arm_x,magnet_arm_y,magnet_arm_z,roll_dumbbell,pitch_dumbbell,yaw_dumbbell,total_accel_dumbbell,gyros_dumbbell_x,gyros_dumbbell_y,gyros_dumbbell_z,accel_dumbbell_x,accel_dumbbell_y,accel_dumbbell_z,magnet_dumbbell_x,magnet_dumbbell_y,magnet_dumbbell_z,roll_forearm,pitch_forearm,yaw_forearm,total_accel_forearm,gyros_forearm_x,gyros_forearm_y,gyros_forearm_z,accel_forearm_x,accel_forearm_y,accel_forearm_z,magnet_forearm_x,magnet_forearm_y,magnet_forearm_z
+
+
+The template command to get a model is something like:
+
+model <- train(classe ~ num_window+roll_belt+pitch_belt+yaw_belt+total_accel_belt+gyros_belt_x+gyros_belt_y+gyros_belt_z+accel_belt_x+accel_belt_y+accel_belt_z+magnet_belt_x+magnet_belt_y+magnet_belt_z+roll_arm+pitch_arm+yaw_arm+total_accel_arm+gyros_arm_x+gyros_arm_y+gyros_arm_z+accel_arm_x+accel_arm_y+accel_arm_z+magnet_arm_x+magnet_arm_y+magnet_arm_z+roll_dumbbell+pitch_dumbbell+yaw_dumbbell+total_accel_dumbbell+gyros_dumbbell_x+gyros_dumbbell_y+gyros_dumbbell_z+accel_dumbbell_x+accel_dumbbell_y+accel_dumbbell_z+magnet_dumbbell_x+magnet_dumbbell_y+magnet_dumbbell_z+roll_forearm+pitch_forearm+yaw_forearm+total_accel_forearm+gyros_forearm_x+gyros_forearm_y+gyros_forearm_z+accel_forearm_x+accel_forearm_y+accel_forearm_z+magnet_forearm_x+magnet_forearm_y+magnet_forearm_z, method="methodname", data=trainingData)
+
+it is theoretically possible to use all the dataFrame as a training set, but the lack of a separate test set/validation set, may lead to an overfit.
+There is a separate test set, which is the one for the submission but it is:
+1) too small
+2) does not have explicit expected classe value to be compare (unless I want to use the feedback of the submission phase as a way to measure the error on the test set).
+
+Using the entire traininData just as an experiment and relying on the test is actually an hazard, and the commands to create an appropriate training set are easy to use.
+(they are just related to createDataPartition that is able to get a random subset of indexes, that can be used then to access to the only traiing or to the only test set data).
+
+By the way, some problem that I found is the fact that many models, mainly linear models, require numeric fields.
+One naive way to solve the problem could be transforming the charactes outcomes ("A","B","C","D","E") in numbers and then apply some linear model, but the results are poor.
+With hindsight, I realize that the mapping between characters to number is essentially arbitrary and a linear model will hardly fit given this arbitrary mapping.
+What I had as a result is a poor performance even on the training data.
+
+Perhaps other models could be used, like polinomials ones, or neural networks, but I was not convinced and they are not cheap (from the computational point of view).
+My idea was that the idea of mapping characters to numbers was wrong, so back to the original dataframe using characters Outcome I remembered that getting a linear model using 
+lm(classe~ ....,data=dataFrame) is in general faster than doing train(classe~ ...., method="glm",data=dataFrame) and so I tried to remember what other options are possible, that
+can be used not only as a method parameter but also as a proper command, and moreover, fast enough.
+
+I tried the randomForest and it had 0 error on the training set, and 0 error on the test set.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
