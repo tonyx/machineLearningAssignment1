@@ -1,0 +1,232 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Machinelearningassignment1 by tonyx</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Machinelearningassignment1</h1>
+        <p>machineLearningAssignment1</p>
+
+        <p class="view"><a href="https://github.com/tonyx/machineLearningAssignment1">View the Project on GitHub <small>tonyx/machineLearningAssignment1</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/tonyx/machineLearningAssignment1/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/tonyx/machineLearningAssignment1/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/tonyx/machineLearningAssignment1">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="description-of-the-project-and-my-path-to-the-solutions" class="anchor" href="#description-of-the-project-and-my-path-to-the-solutions"><span class="octicon octicon-link"></span></a>Description of the project and my path to the solutions:</h1>
+
+<p>I made many experiments before being going through the problem.
+In this document I decided to briefly show such experiments (or spikes, or “katas”) to share my learning experiences. After all the way I solved the problem itself was a serie of try and error on real data, and a process of deciding which features to use, trying a method, verifying the error on the the training set, then on the test set, and so on.
+I’ll also talk about the issue of the test set later.
+Please note that this is not a report with a lot of numbers and data, but a narrative about the learning experience toward getting some skills on caret, the pitfalls, and the solution found. It was mainly, I have to admit, a serie of try and error until it worked well.</p>
+
+<h2>
+<a name="the-experimentation" class="anchor" href="#the-experimentation"><span class="octicon octicon-link"></span></a>The experimentation:</h2>
+
+<p>To be sure I understood how to use the tools I set some expectation on artificial data, created such artificial data with a well known underlying model, and then verify such expectation.</p>
+
+<p>Artificial data: houses having a price depending by a linear combination of factors like: number of rooms, location plus a Gaussian distributed random variable with average 0 and with a specified Standard Deviation.</p>
+
+<pre><code>createDataFrameOfPrices &lt;- function(numbRows) {
+
+#creating dataframe 
+col1 &lt;- c()
+col2 &lt;- c()
+col3 &lt;- c()
+col4 &lt;- c()
+col5 &lt;- c()
+myDataFrame &lt;- data.frame(col1,col2,col3,col4,col5)
+
+for (i in 1:numbRows) {
+    numberOfRooms &lt;- randomNumberOfRooms()
+    cityCountryOrSea &lt;- randomBooleanThreePositions()
+    price &lt;- housePrice(numberOfRooms,cityCountryOrSea[[1]],cityCountryOrSea[[2]],cityCountryOrSea[[3]])
+    newRow &lt;- append(c(price,numberOfRooms),cityCountryOrSea)
+    myDataFrame &lt;- rbind(myDataFrame,newRow)
+}
+
+colnames(myDataFrame) &lt;- c("price","numberRooms","city","country","sea")
+
+return(myDataFrame)
+}
+
+
+
+housePrice &lt;- function(numRooms=2,isCity=TRUE,isCountry=FALSE,isSea=FALSE) {
+varianceOfGaussianNoise &lt;- 5
+return(numRooms*100+(isCity*0.9+isSea*1.1+isCountry*1)*100 +rnorm(1,0,varianceOfGaussianNoise))
+}
+
+randomNumberOfRooms &lt;- function() {
+sample(2:4,size=1)
+}
+
+randomBooleanThreePositions &lt;- function() {
+sample(c(TRUE,FALSE,FALSE),size=3)
+}
+</code></pre>
+
+<h2>
+<a name="expectation" class="anchor" href="#expectation"><span class="octicon octicon-link"></span></a>Expectation</h2>
+
+<p>Given that the underlying model is linear, then a linear model in learning will fit well, and, moreover, the error will be a Gaussian distribution, which is the noise that I added.</p>
+
+<p>In this way I can create a 1000 rows dataFrame by calling housePrice.
+dataFrame &lt;- createDataFrameOfPrices(1000)</p>
+
+<p>To get the model I can write:
+model &lt;- lm(price ~ ., data=dataFrame)</p>
+
+<p>So I can obtain the values of prices predicted on the training data as follow:</p>
+
+<p>predictions &lt;- predict(model,data=dataFrame)</p>
+
+<p>get the error as a vector of differences between the predictions and the real prices:</p>
+
+<p>error &lt;- predictions - prices$price</p>
+
+<p>and if I plot the error (on y) respect to the sample (on x)
+as follow:
+plot(error)</p>
+
+<p>I get something that is equivalent to plotting the error I added to the model
+I can generate directly such error using the command</p>
+
+<p>gaussNoise &lt;- rnorm(1000,0,5)</p>
+
+<p>and plot it by plot(gaussNoise) it looks statistically indistinguishable from the plot of the error.</p>
+
+<p>If I go to the code that generate the prices, and adjust the standard deviation of the gaussian noise from 5 to 10, and then compare
+the error of the learned model to a gaussian noise generated again with a standard deviation of 10, again we see the same picture.</p>
+
+<p>Even if the noise is 0, then we see that the error is between -1 and 1 in the recall (probably due only to some rounds in calculation).</p>
+
+<hr><p>Given that all the rest is a matter of: deciding what (if) doing some preprocessing, what features to select among the collected data (features that are unrelated to the outcome create noise and complexity for the learning process).</p>
+
+<p>Of course, it is a matter of experience in using the tools, and possibility to access to the domain knowledge.</p>
+
+<p>In my case the knowledge was almost zero, and despite the knowledge domain is important, I concentrated my effort in the search of an acceptable solution with no assumption to the domain and concentrate on just learning the tools provided by Caret.</p>
+
+<p>Now I noted this difference between the experiments on artificially generated data and this real data:</p>
+
+<p>I don't know what variables I have to use, and even I don't know their meaning (already talked about the knowledge on the domain)</p>
+
+<p>Many data are missing (NA)
+Many data are potentially useless (and so will generate noise and complexity)
+Many data can be used in the training set but may be missing in the test set.</p>
+
+<p>I expected that any data that is present on the training data, but missing on the test set, will become noise.
+So, given that I know that there must exist a model that work on the test data, I assumed that it worth to take a look on the test data, see which features are actually used there, and use them as a training process on the training data.</p>
+
+<p>So, summarizing, I used the columns names that I can see on the tests set which contains actual data, and which looks making sense.</p>
+
+<p>Such columns are:</p>
+
+<p>num_window,roll_belt,pitch_belt,yaw_belt,total_accel_belt,gyros_belt_x,gyros_belt_y,gyros_belt_z,accel_belt_x,accel_belt_y,accel_belt_z,magnet_belt_x,magnet_belt_y,magnet_belt_z,roll_arm,pitch_arm,yaw_arm,total_accel_arm,gyros_arm_x,gyros_arm_y,gyros_arm_z,accel_arm_x,accel_arm_y,accel_arm_z,magnet_arm_x,magnet_arm_y,magnet_arm_z,roll_dumbbell,pitch_dumbbell,yaw_dumbbell,total_accel_dumbbell,gyros_dumbbell_x,gyros_dumbbell_y,gyros_dumbbell_z,accel_dumbbell_x,accel_dumbbell_y,accel_dumbbell_z,magnet_dumbbell_x,magnet_dumbbell_y,magnet_dumbbell_z,roll_forearm,pitch_forearm,yaw_forearm,total_accel_forearm,gyros_forearm_x,gyros_forearm_y,gyros_forearm_z,accel_forearm_x,accel_forearm_y,accel_forearm_z,magnet_forearm_x,magnet_forearm_y,magnet_forearm_z</p>
+
+<p>They contains all numeric data and no NA. Taking a look on them is enough to find it, otherwise there are automated tools for it (hint: help on complete.cases at it).</p>
+
+<p>I excluded timestamps because I didn’t expect on the first place that the timestamp would make the difference (perhaps if the timestamp were meant to get an information like “how long this exercise has been done, in that case I would consider it, using some preprocessing getting a difference: end time - start time).</p>
+
+<p>The template command to get a model is something like:</p>
+
+<p>model &lt;- train(classe ~ num_window+roll_belt+pitch_belt+yaw_belt+total_accel_belt+gyros_belt_x+gyros_belt_y+gyros_belt_z+accel_belt_x+accel_belt_y+accel_belt_z+magnet_belt_x+magnet_belt_y+magnet_belt_z+roll_arm+pitch_arm+yaw_arm+total_accel_arm+gyros_arm_x+gyros_arm_y+gyros_arm_z+accel_arm_x+accel_arm_y+accel_arm_z+magnet_arm_x+magnet_arm_y+magnet_arm_z+roll_dumbbell+pitch_dumbbell+yaw_dumbbell+total_accel_dumbbell+gyros_dumbbell_x+gyros_dumbbell_y+gyros_dumbbell_z+accel_dumbbell_x+accel_dumbbell_y+accel_dumbbell_z+magnet_dumbbell_x+magnet_dumbbell_y+magnet_dumbbell_z+roll_forearm+pitch_forearm+yaw_forearm+total_accel_forearm+gyros_forearm_x+gyros_forearm_y+gyros_forearm_z+accel_forearm_x+accel_forearm_y+accel_forearm_z+magnet_forearm_x+magnet_forearm_y+magnet_forearm_z, method="methodname", data=trainingData)</p>
+
+<p>where methodname is a specific name for a method, each one has some specificity, or requires different parameters.</p>
+
+<p>I found difficult to test variants of linear model just because they have some troubles when the data are labels like A, B, C, D, E, which are the outome levels.</p>
+
+<p>For example, using “glm” method the error message is:
+“glm models can only use 2-class outcomes”</p>
+
+<p>I had, with bad luck, tried to wrap the outcomes in numeric, but I would not recommend it anymore: for example if I map A, B, C, D, E as 1 2 3 4 5 clearly anyone could say, why not 1 2 3 5 8 13? </p>
+
+<p>Many model (for example a linear model) will not work in this way simply because the sequence of outcomes should respect the linear model as well.</p>
+
+<p>So I tried model that work well with labels, and the first one that worked, also with a reasonable computing time, was the randomForest.</p>
+
+<p>About training set and test set.</p>
+
+<p>It is possible to use all the dataFrame as a training set, but the lack of a separate test set/validation set, may lead to an overfit.</p>
+
+<p>There is a separate test set in this exercise, and it is probably not meant to use as a test set in the training process, but only for the submission.
+In fact it is:
+1) small
+2) it does not have explicit expected classe value to be compare (unless I want to use the feedback of the submission phase as a way to measure the error on the test set).</p>
+
+<p>Using the entire traininData just as an experiment and relying on the test is actually an hazard.
+By the way I made this hazard, in the sense that I tried to train using all the pml-training.csv, verified the error on that dataFrame, and after seeing that the error was zero, I hypothized that if I had an overfit issue, than I would have realized it as a submission error on the test set.</p>
+
+<p>By the way, separating the pml-training.csv in a proper training set and test set is easy using the createDataPartition.</p>
+
+<p>By the way, the final solution is based on the following commands:
+trainingData &lt;- read.csv(“pml-training.csv”)</p>
+
+<p>model &lt;- randomForest(classe ~ num_window+roll_belt+pitch_belt+yaw_belt+total_accel_belt+gyros_belt_x+gyros_belt_y+gyros_belt_z+accel_belt_x+accel_belt_y+accel_belt_z+magnet_belt_x+magnet_belt_y+magnet_belt_z+roll_arm+pitch_arm+yaw_arm+total_accel_arm+gyros_arm_x+gyros_arm_y+gyros_arm_z+accel_arm_x+accel_arm_y+accel_arm_z+magnet_arm_x+magnet_arm_y+magnet_arm_z+roll_dumbbell+pitch_dumbbell+yaw_dumbbell+total_accel_dumbbell+gyros_dumbbell_x+gyros_dumbbell_y+gyros_dumbbell_z+accel_dumbbell_x+accel_dumbbell_y+accel_dumbbell_z+magnet_dumbbell_x+magnet_dumbbell_y+magnet_dumbbell_z+roll_forearm+pitch_forearm+yaw_forearm+total_accel_forearm+gyros_forearm_x+gyros_forearm_y+gyros_forearm_z+accel_forearm_x+accel_forearm_y+accel_forearm_z+magnet_forearm_x+magnet_forearm_y+magnet_forearm_z, data=trainigData)</p>
+
+<p>I tried the randomForest, </p>
+
+<p>this is the model I got:</p>
+
+<p>Call:
+ randomForest(formula = classe ~ num_window + roll_belt + pitch_belt +      yaw_belt + total_accel_belt + gyros_belt_x + gyros_belt_y +      gyros_belt_z + accel_belt_x + accel_belt_y + accel_belt_z +      magnet_belt_x + magnet_belt_y + magnet_belt_z + roll_arm +      pitch_arm + yaw_arm + total_accel_arm + gyros_arm_x + gyros_arm_y +      gyros_arm_z + accel_arm_x + accel_arm_y + accel_arm_z + magnet_arm_x +      magnet_arm_y + magnet_arm_z + roll_dumbbell + pitch_dumbbell +      yaw_dumbbell + total_accel_dumbbell + gyros_dumbbell_x +      gyros_dumbbell_y + gyros_dumbbell_z + accel_dumbbell_x +      accel_dumbbell_y + accel_dumbbell_z + magnet_dumbbell_x +      magnet_dumbbell_y + magnet_dumbbell_z + roll_forearm + pitch_forearm +      yaw_forearm + total_accel_forearm + gyros_forearm_x + gyros_forearm_y +      gyros_forearm_z + accel_forearm_x + accel_forearm_y + accel_forearm_z +      magnet_forearm_x + magnet_forearm_y + magnet_forearm_z, data = dataFrame) 
+               Type of random forest: classification
+                     Number of trees: 500
+No. of variables tried at each split: 7</p>
+
+<pre><code>    OOB estimate of  error rate: 0.14%
+</code></pre>
+
+<p>Confusion matrix:
+     A    B    C    D    E  class.error
+A 5579    0    0    0    1 0.0001792115
+B    4 3792    1    0    0 0.0013168291
+C    0    5 3417    0    0 0.0014611338
+D    0    0   11 3204    1 0.0037313433
+E    0    0    0    4 3603 0.0011089548</p>
+
+<p>then I calculated the predicted values using
+predicted &lt;- predict(model,trainingData)</p>
+
+<p>One easy way to find the error on recall (the number of times the predicted class is different from the actual class) is converting both the classe, i.e. the actuals, and the predicted in numeric and then compute their difference.
+The resulting vector will have non zero values for each discrepancy:</p>
+
+<p>recallErrors &lt;- as.numeric(predicted) - as.numeric(dataFrame$classe)</p>
+
+<p>if recallErrors has all zeros, then it means that the recall is perfect.
+It is easy to see that recallErrors has all zeroes.</p>
+
+<p>If this perfection is due to overfit, then I would see errors on the test set, but, after the submission, happens that the applying the predict on the test data resulted in no error as well.</p>
+
+<p>This is the result on the test data:</p>
+
+<p>predict(newModel,testFrame)
+ 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+ B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B 
+Levels: A B C D E</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/tonyx">tonyx</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
