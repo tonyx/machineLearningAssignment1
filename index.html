@@ -1,215 +1,351 @@
-Description of the project and my path to the solutions:
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<style>
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 18px;
+    color: #737373;
+    background-color: white;
+    margin: 10px 13px 10px 13px;
+}
+table {
+	margin: 10px 0 15px 0;
+	border-collapse: collapse;
+}
+td,th {	
+	border: 1px solid #ddd;
+	padding: 3px 10px;
+}
+th {
+	padding: 5px 10px;	
+}
 
+a {
+    color: #0069d6;
+}
+a:hover {
+    color: #0050a3;
+    text-decoration: none;
+}
+a img {
+    border: none;
+}
+p {
+    margin-bottom: 9px;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #404040;
+    line-height: 36px;
+}
+h1 {
+    margin-bottom: 18px;
+    font-size: 30px;
+}
+h2 {
+    font-size: 24px;
+}
+h3 {
+    font-size: 18px;
+}
+h4 {
+    font-size: 16px;
+}
+h5 {
+    font-size: 14px;
+}
+h6 {
+    font-size: 13px;
+}
+hr {
+    margin: 0 0 19px;
+    border: 0;
+    border-bottom: 1px solid #ccc;
+}
+blockquote {
+    padding: 13px 13px 21px 15px;
+    margin-bottom: 18px;
+    font-family:georgia,serif;
+    font-style: italic;
+}
+blockquote:before {
+    content:"\201C";
+    font-size:40px;
+    margin-left:-10px;
+    font-family:georgia,serif;
+    color:#eee;
+}
+blockquote p {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 18px;
+    margin-bottom: 0;
+    font-style: italic;
+}
+code, pre {
+    font-family: Monaco, Andale Mono, Courier New, monospace;
+}
+code {
+    background-color: #fee9cc;
+    color: rgba(0, 0, 0, 0.75);
+    padding: 1px 3px;
+    font-size: 12px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+pre {
+    display: block;
+    padding: 14px;
+    margin: 0 0 18px;
+    line-height: 16px;
+    font-size: 11px;
+    border: 1px solid #d9d9d9;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+pre code {
+    background-color: #fff;
+    color:#737373;
+    font-size: 11px;
+    padding: 0;
+}
+sup {
+    font-size: 0.83em;
+    vertical-align: super;
+    line-height: 0;
+}
+* {
+	-webkit-print-color-adjust: exact;
+}
+@media screen and (min-width: 914px) {
+    body {
+        width: 854px;
+        margin:10px auto;
+    }
+}
+@media print {
+	body,code,pre code,h1,h2,h3,h4,h5,h6 {
+		color: black;
+	}
+	table, pre {
+		page-break-inside: avoid;
+	}
+}
+</style>
+<title>Description of the project and my path to the solutions:</title>
 
-I made many experiments before being going through the problem.
+</head>
+<body>
+<h1>Description of the project and my path to the solutions:</h1>
+
+<p>I made many experiments before being going through the problem.
 In this document I decided to briefly show such experiments (or spikes, or “katas”) to share my learning experiences. After all the way I solved the problem itself was a serie of try and error on real data, and a process of deciding which features to use, trying a method, verifying the error on the the training set, then on the test set, and so on.
 I’ll also talk about the issue of the test set later.
-Please note that this is not a report with a lot of numbers and data, but a narrative about the learning experience toward getting some skills on caret, the pitfalls, and the solution found. It was mainly, I have to admit, a serie of try and error until it worked well.
+Please note that this is not a report with a lot of numbers and data, but a narrative about the learning experience toward getting some skills on caret, the pitfalls, and the solution found. It was mainly, I have to admit, a serie of try and error until it worked well.</p>
 
-The experimentation:
+<h2>The experimentation:</h2>
 
-To be sure I understood how to use the tools I set some expectation on artificial data, created such artificial data with a well known underlying model, and then verify such expectation.
+<p>To be sure I understood how to use the tools I set some expectation on artificial data, created such artificial data with a well known underlying model, and then verify such expectation.</p>
 
-Artificial data: houses having a price depending by a linear combination of factors like: number of rooms, location plus a Gaussian distributed random variable with average 0 and with a specified Standard Deviation.
+<p>Artificial data: houses having a price depending by a linear combination of factors like: number of rooms, location plus a Gaussian distributed random variable with average 0 and with a specified Standard Deviation.</p>
 
+<pre><code>createDataFrameOfPrices &lt;- function(numbRows) {
 
+#creating dataframe 
+col1 &lt;- c()
+col2 &lt;- c()
+col3 &lt;- c()
+col4 &lt;- c()
+col5 &lt;- c()
+myDataFrame &lt;- data.frame(col1,col2,col3,col4,col5)
 
-createDataFrameOfPrices <- function(numbRows) {
-	
-	#creating dataframe 
-	col1 <- c()
-	col2 <- c()
-	col3 <- c()
-	col4 <- c()
-	col5 <- c()
-	myDataFrame <- data.frame(col1,col2,col3,col4,col5)
+for (i in 1:numbRows) {
+    numberOfRooms &lt;- randomNumberOfRooms()
+    cityCountryOrSea &lt;- randomBooleanThreePositions()
+    price &lt;- housePrice(numberOfRooms,cityCountryOrSea[[1]],cityCountryOrSea[[2]],cityCountryOrSea[[3]])
+    newRow &lt;- append(c(price,numberOfRooms),cityCountryOrSea)
+    myDataFrame &lt;- rbind(myDataFrame,newRow)
+}
 
-	for (i in 1:numbRows) {
-		numberOfRooms <- randomNumberOfRooms()
-		cityCountryOrSea <- randomBooleanThreePositions()
-		price <- housePrice(numberOfRooms,cityCountryOrSea[[1]],cityCountryOrSea[[2]],cityCountryOrSea[[3]])
-		newRow <- append(c(price,numberOfRooms),cityCountryOrSea)
-		myDataFrame <- rbind(myDataFrame,newRow)
-	}
+colnames(myDataFrame) &lt;- c("price","numberRooms","city","country","sea")
 
-	colnames(myDataFrame) <- c("price","numberRooms","city","country","sea")
-
-	return(myDataFrame)
+return(myDataFrame)
 }
 
 
-housePrice <- function(numRooms=2,isCity=TRUE,isCountry=FALSE,isSea=FALSE) {
-	varianceOfGaussianNoise <- 5
-	return(numRooms*100+(isCity*0.9+isSea*1.1+isCountry*1)*100 +rnorm(1,0,varianceOfGaussianNoise))
+
+housePrice &lt;- function(numRooms=2,isCity=TRUE,isCountry=FALSE,isSea=FALSE) {
+varianceOfGaussianNoise &lt;- 5
+return(numRooms*100+(isCity*0.9+isSea*1.1+isCountry*1)*100 +rnorm(1,0,varianceOfGaussianNoise))
 }
 
-randomNumberOfRooms <- function() {
-	sample(2:4,size=1)
+randomNumberOfRooms &lt;- function() {
+sample(2:4,size=1)
 }
 
-randomBooleanThreePositions <- function() {
-	sample(c(TRUE,FALSE,FALSE),size=3)
+randomBooleanThreePositions &lt;- function() {
+sample(c(TRUE,FALSE,FALSE),size=3)
 }
+</code></pre>
 
+<h2>Expectation</h2>
 
-Given that the underlying model is linear, then a linear model in learning will fit well, and, moreover, the error will be a Gaussian distribution, which is the noise that I added.
+<p>Given that the underlying model is linear, then a linear model in learning will fit well, and, moreover, the error will be a Gaussian distribution, which is the noise that I added.</p>
 
-In this way I can create a 1000 rows dataFrame by calling housePrice.
-dataFrame <- createDataFrameOfPrices(1000)
+<p>In this way I can create a 1000 rows dataFrame by calling housePrice.
+dataFrame &lt;- createDataFrameOfPrices(1000)</p>
 
-To get the model I can write:
-model <- lm(price ~ ., data=dataFrame)
+<p>To get the model I can write:
+model &lt;- lm(price ~ ., data=dataFrame)</p>
 
+<p>So I can obtain the values of prices predicted on the training data as follow:</p>
 
-So I can obtain the values of prices predicted on the training data as follow:
+<p>predictions &lt;- predict(model,data=dataFrame)</p>
 
-predictions <- predict(model,data=dataFrame)
+<p>get the error as a vector of differences between the predictions and the real prices:</p>
 
-get the error as a vector of differences between the predictions and the real prices:
+<p>error &lt;- predictions - prices$price</p>
 
-error <- predictions - prices$price
-
-and if I plot the error (on y) respect to the sample (on x)
+<p>and if I plot the error (on y) respect to the sample (on x)
 as follow:
-plot(error)
+plot(error)</p>
 
+<p>I get something that is equivalent to plotting the error I added to the model
+I can generate directly such error using the command</p>
 
+<p>gaussNoise &lt;- rnorm(1000,0,5)</p>
 
-I get something that is equivalent to plotting the error I added to the model
-I can generate directly such error using the command
+<p>and plot it by plot(gaussNoise) it looks statistically indistinguishable from the plot of the error.</p>
 
-gaussNoise <- rnorm(1000,0,5)
+<p>If I go to the code that generate the prices, and adjust the standard deviation of the gaussian noise from 5 to 10, and then compare
+the error of the learned model to a gaussian noise generated again with a standard deviation of 10, again we see the same picture.</p>
 
-and plot it by plot(gaussNoise) it looks statistically indistinguishable from the plot of the error.
+<p>Even if the noise is 0, then we see that the error is between -1 and 1 in the recall (probably due only to some rounds in calculation).</p>
 
-If I go to the code that generate the prices, and adjust the standard deviation of the gaussian noise from 5 to 10, and then compare
-the error of the learned model to a gaussian noise generated again with a standard deviation of 10, again we see the same picture.
+<hr />
 
-Even if the noise is 0, then we see that the error is between -1 and 1 in the recall (probably due only to some rounds in calculation).
+<p>Given that all the rest is a matter of: deciding what (if) doing some preprocessing, what features to select among the collected data (features that are unrelated to the outcome create noise and complexity for the learning process).</p>
 
----
+<p>Of course, it is a matter of experience in using the tools, and possibility to access to the domain knowledge.</p>
 
+<p>In my case the knowledge was almost zero, and despite the knowledge domain is important, I concentrated my effort in the search of an acceptable solution with no assumption to the domain and concentrate on just learning the tools provided by Caret.</p>
 
-Given that all the rest is a matter of: deciding what (if) doing some preprocessing, what features to select among the collected data (features that are unrelated to the outcome create noise and complexity for the learning process).
+<p>Now I noted this difference between the experiments on artificially generated data and this real data:</p>
 
-Of course, it is a matter of experience in using the tools, and possibility to access to the domain knowledge.
+<p>I don't know what variables I have to use, and even I don't know their meaning (already talked about the knowledge on the domain)</p>
 
-In my case the knowledge was almost zero, and despite the knowledge domain is important, I concentrated my effort in the search of an acceptable solution with no assumption to the domain and concentrate on just learning the tools provided by Caret.
-
-Now I noted this difference between the experiments on artificially generated data and this real data:
-
-I don't know what variables I have to use, and even I don't know their meaning (already talked about the knowledge on the domain)
-
-Many data are missing (NA)
+<p>Many data are missing (NA)
 Many data are potentially useless (and so will generate noise and complexity)
-Many data can be used in the training set but may be missing in the test set.
+Many data can be used in the training set but may be missing in the test set.</p>
 
-I expected that any data that is present on the training data, but missing on the test set, will become noise.
-So, given that I know that there must exist a model that work on the test data, I assumed that it worth to take a look on the test data, see which features are actually used there, and use them as a training process on the training data.
+<p>I expected that any data that is present on the training data, but missing on the test set, will become noise.
+So, given that I know that there must exist a model that work on the test data, I assumed that it worth to take a look on the test data, see which features are actually used there, and use them as a training process on the training data.</p>
 
-So, summarizing, I used the columns names that I can see on the tests set which contains actual data, and which looks making sense.
+<p>So, summarizing, I used the columns names that I can see on the tests set which contains actual data, and which looks making sense.</p>
 
-Such columns are:
+<p>Such columns are:</p>
 
-num_window,roll_belt,pitch_belt,yaw_belt,total_accel_belt,gyros_belt_x,gyros_belt_y,gyros_belt_z,accel_belt_x,accel_belt_y,accel_belt_z,magnet_belt_x,magnet_belt_y,magnet_belt_z,roll_arm,pitch_arm,yaw_arm,total_accel_arm,gyros_arm_x,gyros_arm_y,gyros_arm_z,accel_arm_x,accel_arm_y,accel_arm_z,magnet_arm_x,magnet_arm_y,magnet_arm_z,roll_dumbbell,pitch_dumbbell,yaw_dumbbell,total_accel_dumbbell,gyros_dumbbell_x,gyros_dumbbell_y,gyros_dumbbell_z,accel_dumbbell_x,accel_dumbbell_y,accel_dumbbell_z,magnet_dumbbell_x,magnet_dumbbell_y,magnet_dumbbell_z,roll_forearm,pitch_forearm,yaw_forearm,total_accel_forearm,gyros_forearm_x,gyros_forearm_y,gyros_forearm_z,accel_forearm_x,accel_forearm_y,accel_forearm_z,magnet_forearm_x,magnet_forearm_y,magnet_forearm_z
+<p>num_window,roll_belt,pitch_belt,yaw_belt,total_accel_belt,gyros_belt_x,gyros_belt_y,gyros_belt_z,accel_belt_x,accel_belt_y,accel_belt_z,magnet_belt_x,magnet_belt_y,magnet_belt_z,roll_arm,pitch_arm,yaw_arm,total_accel_arm,gyros_arm_x,gyros_arm_y,gyros_arm_z,accel_arm_x,accel_arm_y,accel_arm_z,magnet_arm_x,magnet_arm_y,magnet_arm_z,roll_dumbbell,pitch_dumbbell,yaw_dumbbell,total_accel_dumbbell,gyros_dumbbell_x,gyros_dumbbell_y,gyros_dumbbell_z,accel_dumbbell_x,accel_dumbbell_y,accel_dumbbell_z,magnet_dumbbell_x,magnet_dumbbell_y,magnet_dumbbell_z,roll_forearm,pitch_forearm,yaw_forearm,total_accel_forearm,gyros_forearm_x,gyros_forearm_y,gyros_forearm_z,accel_forearm_x,accel_forearm_y,accel_forearm_z,magnet_forearm_x,magnet_forearm_y,magnet_forearm_z</p>
 
-They contains all numeric data and no NA. Taking a look on them is enough to find it, otherwise there are automated tools for it (hint: help on complete.cases at it).
+<p>They contains all numeric data and no NA. Taking a look on them is enough to find it, otherwise there are automated tools for it (hint: help on complete.cases at it).</p>
 
-I excluded timestamps because I didn’t expect on the first place that the timestamp would make the difference (perhaps if the timestamp were meant to get an information like “how long this exercise has been done, in that case I would consider it, using some preprocessing getting a difference: end time - start time).
+<p>I excluded timestamps because I didn’t expect on the first place that the timestamp would make the difference (perhaps if the timestamp were meant to get an information like “how long this exercise has been done, in that case I would consider it, using some preprocessing getting a difference: end time - start time).</p>
 
-The template command to get a model is something like:
+<p>The template command to get a model is something like:</p>
 
-model <- train(classe ~ num_window+roll_belt+pitch_belt+yaw_belt+total_accel_belt+gyros_belt_x+gyros_belt_y+gyros_belt_z+accel_belt_x+accel_belt_y+accel_belt_z+magnet_belt_x+magnet_belt_y+magnet_belt_z+roll_arm+pitch_arm+yaw_arm+total_accel_arm+gyros_arm_x+gyros_arm_y+gyros_arm_z+accel_arm_x+accel_arm_y+accel_arm_z+magnet_arm_x+magnet_arm_y+magnet_arm_z+roll_dumbbell+pitch_dumbbell+yaw_dumbbell+total_accel_dumbbell+gyros_dumbbell_x+gyros_dumbbell_y+gyros_dumbbell_z+accel_dumbbell_x+accel_dumbbell_y+accel_dumbbell_z+magnet_dumbbell_x+magnet_dumbbell_y+magnet_dumbbell_z+roll_forearm+pitch_forearm+yaw_forearm+total_accel_forearm+gyros_forearm_x+gyros_forearm_y+gyros_forearm_z+accel_forearm_x+accel_forearm_y+accel_forearm_z+magnet_forearm_x+magnet_forearm_y+magnet_forearm_z, method="methodname", data=trainingData)
+<p>model &lt;- train(classe ~ num_window+roll_belt+pitch_belt+yaw_belt+total_accel_belt+gyros_belt_x+gyros_belt_y+gyros_belt_z+accel_belt_x+accel_belt_y+accel_belt_z+magnet_belt_x+magnet_belt_y+magnet_belt_z+roll_arm+pitch_arm+yaw_arm+total_accel_arm+gyros_arm_x+gyros_arm_y+gyros_arm_z+accel_arm_x+accel_arm_y+accel_arm_z+magnet_arm_x+magnet_arm_y+magnet_arm_z+roll_dumbbell+pitch_dumbbell+yaw_dumbbell+total_accel_dumbbell+gyros_dumbbell_x+gyros_dumbbell_y+gyros_dumbbell_z+accel_dumbbell_x+accel_dumbbell_y+accel_dumbbell_z+magnet_dumbbell_x+magnet_dumbbell_y+magnet_dumbbell_z+roll_forearm+pitch_forearm+yaw_forearm+total_accel_forearm+gyros_forearm_x+gyros_forearm_y+gyros_forearm_z+accel_forearm_x+accel_forearm_y+accel_forearm_z+magnet_forearm_x+magnet_forearm_y+magnet_forearm_z, method="methodname", data=trainingData)</p>
 
-where methodname is a specific name for a method, each one has some specificity, or requires different parameters.
+<p>where methodname is a specific name for a method, each one has some specificity, or requires different parameters.</p>
 
-I found difficult to test variants of linear model just because they have some troubles when the data are labels like A, B, C, D, E, which are the outome levels.
+<p>I found difficult to test variants of linear model just because they have some troubles when the data are labels like A, B, C, D, E, which are the outome levels.</p>
 
-For example, using “glm” method the error message is:
-“glm models can only use 2-class outcomes”
+<p>For example, using “glm” method the error message is:
+“glm models can only use 2-class outcomes”</p>
 
-I had, with bad luck, tried to wrap the outcomes in numeric, but I would not recommend it anymore: for example if I map A, B, C, D, E as 1 2 3 4 5 clearly anyone could say, why not 1 2 3 5 8 13? 
+<p>I had, with bad luck, tried to wrap the outcomes in numeric, but I would not recommend it anymore: for example if I map A, B, C, D, E as 1 2 3 4 5 clearly anyone could say, why not 1 2 3 5 8 13?</p>
 
-Many model (for example a linear model) will not work in this way simply because the sequence of outcomes should respect the linear model as well.
+<p>Many model (for example a linear model) will not work in this way simply because the sequence of outcomes should respect the linear model as well.</p>
 
-So I tried model that work well with labels, and the first one that worked, also with a reasonable computing time, was the randomForest.
+<p>So I tried model that work well with labels, and the first one that worked, also with a reasonable computing time, was the randomForest.</p>
 
-About training set and test set.
+<p>About training set and test set.</p>
 
-It is possible to use all the dataFrame as a training set, but the lack of a separate test set/validation set, may lead to an overfit.
+<p>It is possible to use all the dataFrame as a training set, but the lack of a separate test set/validation set, may lead to an overfit.</p>
 
-There is a separate test set in this exercise, and it is probably not meant to use as a test set in the training process, but only for the submission.
+<p>There is a separate test set in this exercise, and it is probably not meant to use as a test set in the training process, but only for the submission.
 In fact it is:
 1) small
-2) it does not have explicit expected classe value to be compare (unless I want to use the feedback of the submission phase as a way to measure the error on the test set).
+2) it does not have explicit expected classe value to be compare (unless I want to use the feedback of the submission phase as a way to measure the error on the test set).</p>
 
-Using the entire traininData just as an experiment and relying on the test is actually an hazard.
-By the way I made this hazard, in the sense that I tried to train using all the pml-training.csv, verified the error on that dataFrame, and after seeing that the error was zero, I hypothized that if I had an overfit issue, than I would have realized it as a submission error on the test set.
+<p>Using the entire traininData just as an experiment and relying on the test is actually an hazard.
+By the way I made this hazard, in the sense that I tried to train using all the pml-training.csv, verified the error on that dataFrame, and after seeing that the error was zero, I hypothized that if I had an overfit issue, than I would have realized it as a submission error on the test set.</p>
 
-By the way, separating the pml-training.csv in a proper training set and test set is easy using the createDataPartition.
+<p>By the way, separating the pml-training.csv in a proper training set and test set is easy using the createDataPartition.</p>
 
+<p>By the way, the final solution is based on the following commands:
+trainingData &lt;- read.csv(“pml-training.csv”)</p>
 
-By the way, the final solution is based on the following commands:
-trainingData <- read.csv(“pml-training.csv”)
+<p>model &lt;- randomForest(classe ~ num_window+roll_belt+pitch_belt+yaw_belt+total_accel_belt+gyros_belt_x+gyros_belt_y+gyros_belt_z+accel_belt_x+accel_belt_y+accel_belt_z+magnet_belt_x+magnet_belt_y+magnet_belt_z+roll_arm+pitch_arm+yaw_arm+total_accel_arm+gyros_arm_x+gyros_arm_y+gyros_arm_z+accel_arm_x+accel_arm_y+accel_arm_z+magnet_arm_x+magnet_arm_y+magnet_arm_z+roll_dumbbell+pitch_dumbbell+yaw_dumbbell+total_accel_dumbbell+gyros_dumbbell_x+gyros_dumbbell_y+gyros_dumbbell_z+accel_dumbbell_x+accel_dumbbell_y+accel_dumbbell_z+magnet_dumbbell_x+magnet_dumbbell_y+magnet_dumbbell_z+roll_forearm+pitch_forearm+yaw_forearm+total_accel_forearm+gyros_forearm_x+gyros_forearm_y+gyros_forearm_z+accel_forearm_x+accel_forearm_y+accel_forearm_z+magnet_forearm_x+magnet_forearm_y+magnet_forearm_z, data=trainigData)</p>
 
-model <- randomForest(classe ~ num_window+roll_belt+pitch_belt+yaw_belt+total_accel_belt+gyros_belt_x+gyros_belt_y+gyros_belt_z+accel_belt_x+accel_belt_y+accel_belt_z+magnet_belt_x+magnet_belt_y+magnet_belt_z+roll_arm+pitch_arm+yaw_arm+total_accel_arm+gyros_arm_x+gyros_arm_y+gyros_arm_z+accel_arm_x+accel_arm_y+accel_arm_z+magnet_arm_x+magnet_arm_y+magnet_arm_z+roll_dumbbell+pitch_dumbbell+yaw_dumbbell+total_accel_dumbbell+gyros_dumbbell_x+gyros_dumbbell_y+gyros_dumbbell_z+accel_dumbbell_x+accel_dumbbell_y+accel_dumbbell_z+magnet_dumbbell_x+magnet_dumbbell_y+magnet_dumbbell_z+roll_forearm+pitch_forearm+yaw_forearm+total_accel_forearm+gyros_forearm_x+gyros_forearm_y+gyros_forearm_z+accel_forearm_x+accel_forearm_y+accel_forearm_z+magnet_forearm_x+magnet_forearm_y+magnet_forearm_z, data=trainigData)
+<p>I tried the randomForest,</p>
 
-I tried the randomForest, 
+<p>this is the model I got:</p>
 
-this is the model I got:
-
-Call:
- randomForest(formula = classe ~ num_window + roll_belt + pitch_belt +      yaw_belt + total_accel_belt + gyros_belt_x + gyros_belt_y +      gyros_belt_z + accel_belt_x + accel_belt_y + accel_belt_z +      magnet_belt_x + magnet_belt_y + magnet_belt_z + roll_arm +      pitch_arm + yaw_arm + total_accel_arm + gyros_arm_x + gyros_arm_y +      gyros_arm_z + accel_arm_x + accel_arm_y + accel_arm_z + magnet_arm_x +      magnet_arm_y + magnet_arm_z + roll_dumbbell + pitch_dumbbell +      yaw_dumbbell + total_accel_dumbbell + gyros_dumbbell_x +      gyros_dumbbell_y + gyros_dumbbell_z + accel_dumbbell_x +      accel_dumbbell_y + accel_dumbbell_z + magnet_dumbbell_x +      magnet_dumbbell_y + magnet_dumbbell_z + roll_forearm + pitch_forearm +      yaw_forearm + total_accel_forearm + gyros_forearm_x + gyros_forearm_y +      gyros_forearm_z + accel_forearm_x + accel_forearm_y + accel_forearm_z +      magnet_forearm_x + magnet_forearm_y + magnet_forearm_z, data = dataFrame) 
+<p>Call:
+ randomForest(formula = classe ~ num_window + roll_belt + pitch_belt +      yaw_belt + total_accel_belt + gyros_belt_x + gyros_belt_y +      gyros_belt_z + accel_belt_x + accel_belt_y + accel_belt_z +      magnet_belt_x + magnet_belt_y + magnet_belt_z + roll_arm +      pitch_arm + yaw_arm + total_accel_arm + gyros_arm_x + gyros_arm_y +      gyros_arm_z + accel_arm_x + accel_arm_y + accel_arm_z + magnet_arm_x +      magnet_arm_y + magnet_arm_z + roll_dumbbell + pitch_dumbbell +      yaw_dumbbell + total_accel_dumbbell + gyros_dumbbell_x +      gyros_dumbbell_y + gyros_dumbbell_z + accel_dumbbell_x +      accel_dumbbell_y + accel_dumbbell_z + magnet_dumbbell_x +      magnet_dumbbell_y + magnet_dumbbell_z + roll_forearm + pitch_forearm +      yaw_forearm + total_accel_forearm + gyros_forearm_x + gyros_forearm_y +      gyros_forearm_z + accel_forearm_x + accel_forearm_y + accel_forearm_z +      magnet_forearm_x + magnet_forearm_y + magnet_forearm_z, data = dataFrame)
                Type of random forest: classification
                      Number of trees: 500
-No. of variables tried at each split: 7
+No. of variables tried at each split: 7</p>
 
-        OOB estimate of  error rate: 0.14%
-Confusion matrix:
+<pre><code>    OOB estimate of  error rate: 0.14%
+</code></pre>
+
+<p>Confusion matrix:
      A    B    C    D    E  class.error
 A 5579    0    0    0    1 0.0001792115
 B    4 3792    1    0    0 0.0013168291
 C    0    5 3417    0    0 0.0014611338
 D    0    0   11 3204    1 0.0037313433
-E    0    0    0    4 3603 0.0011089548
+E    0    0    0    4 3603 0.0011089548</p>
 
+<p>then I calculated the predicted values using
+predicted &lt;- predict(model,trainingData)</p>
 
+<p>One easy way to find the error on recall (the number of times the predicted class is different from the actual class) is converting both the classe, i.e. the actuals, and the predicted in numeric and then compute their difference.
+The resulting vector will have non zero values for each discrepancy:</p>
 
-then I calculated the predicted values using
-predicted <- predict(model,trainingData)
+<p>recallErrors &lt;- as.numeric(predicted) - as.numeric(dataFrame$classe)</p>
 
-One easy way to find the error on recall (the number of times the predicted class is different from the actual class) is converting both the classe, i.e. the actuals, and the predicted in numeric and then compute their difference.
-The resulting vector will have non zero values for each discrepancy:
+<p>if recallErrors has all zeros, then it means that the recall is perfect.
+It is easy to see that recallErrors has all zeroes.</p>
 
-recallErrors <- as.numeric(predicted) - as.numeric(dataFrame$classe)
+<p>If this perfection is due to overfit, then I would see errors on the test set, but, after the submission, happens that the applying the predict on the test data resulted in no error as well.</p>
 
-if recallErrors has all zeros, then it means that the recall is perfect.
-It is easy to see that recallErrors has all zeroes.
+<p>This is the result on the test data:</p>
 
-If this perfection is due to overfit, then I would see errors on the test set, but, after the submission, happens that the applying the predict on the test data resulted in no error as well.
-
-
-This is the result on the test data:
-
-predict(newModel,testFrame)
- 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
- B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B 
-Levels: A B C D E
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<p>predict(newModel,testFrame)
+ 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20
+ B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B
+Levels: A B C D E</p>
+</body>
+</html>
